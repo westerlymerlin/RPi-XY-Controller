@@ -12,8 +12,8 @@ def writesettings():
 def initialise():
     global settings
     settings['logging'] = {}
-    settings['logging']['logfilepath'] = './logs/pumpreader.log'
-    settings['logging']['logappname'] = 'X-Y-Driver-Py'
+    settings['logging']['logfilepath'] = './logs/xycontrol.log'
+    settings['logging']['logappname'] = 'X-Y-Drive-Py'
     settings['logging']['gunicornpath'] = './logs/'
     settings['logging']['cputemp'] = '/sys/class/thermal/thermal_zone0/temp'
     settings['logging']['syslogfilepath'] = '/var/log/syslog'
