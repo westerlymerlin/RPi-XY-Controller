@@ -30,17 +30,6 @@ class PositionClass:
         else:
             return -99.99
 
-    def httpstatus(self):
-        statuslist = ({'xpos': round(self.x, 4), 'ypos': round(self.y, 4)})
-        # print(statuslist)
-        return statuslist
-
-    def apistatus(self):
-        statuslist = ({'xpos': self.x, 'ypos': self.y})
-        # print(statuslist)
-        return statuslist
-
-
 class StepperClass:
     def __init__(self):
         self.axis = 'n'
@@ -191,6 +180,13 @@ class StepperClass:
         GPIO.output(self.channelb, channels[2])
         GPIO.output(self.channelbb, channels[3])
 
+def httpstatus():
+    statuslist = ({'xpos': round(positions.x, 4), 'ypos': round(positions.y, 4)})
+    return statuslist
+
+def apistatus():
+    statuslist = ({'xpos': positions.x, 'xmoving': stepperx.moving, 'ypos': positions.y, 'ymoving': steppery.moving })
+    return statuslist
 
 def parsecontrol(item, command):
     try:

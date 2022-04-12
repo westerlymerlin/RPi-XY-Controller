@@ -1,6 +1,6 @@
 import json
 
-version = '1.8.0'
+version = '1.9.0'
 settings = {}
 
 
@@ -16,6 +16,7 @@ def initialise():
     settings['logging']['logappname'] = 'X-Y-Driver-Py'
     settings['logging']['gunicornpath'] = './logs/'
     settings['logging']['cputemp'] = '/sys/class/thermal/thermal_zone0/temp'
+    settings['logging']['syslogfilepath'] = '/var/log/syslog'
     with open('settings.json', 'w') as outfile:
         json.dump(settings, outfile, indent=4, ensure_ascii=True, sort_keys=True)
 
