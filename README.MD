@@ -1,6 +1,6 @@
 # X-Y Controller
 
-### Valve controller is a python app that can operate 24v valves and is controlled via an HTTP API
+### X-Y Controller is a python app that can operate 24v stepper motors and is controlled via an HTTP API
 
 
 `app.py`			    Flask application that manages the API 
