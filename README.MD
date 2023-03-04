@@ -13,3 +13,14 @@
 
 `Stepper Control Circuit.fzz`     contains the schematics and PCB layout for use in the Fritzing application https://fritzing.org/
 
+### JSON Commands
+
+`{'getxystatus', 1}` Return the current locations of the x and y steppers
+ 
+`{'xmove', n}` move x stepper n steps (-n for backwards) (if n=0 then stop)
+
+`{'ymove', n}` move y stepper n steps (-n for backwards) (if n=0 then stop)
+
+`{'xmoveto', f}` move x stepper to position f (float)
+
+`{'ymoveto', f}` move y stepper to position f (float)
