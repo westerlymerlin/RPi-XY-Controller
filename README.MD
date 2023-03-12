@@ -24,3 +24,5 @@
 `{'xmoveto', f}` move x stepper to position f (float)
 
 `{'ymoveto', f}` move y stepper to position f (float)
+
+`{'restart', 'pi'}` Restart the raspberry pi after a 15 secodn delay

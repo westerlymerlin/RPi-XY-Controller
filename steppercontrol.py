@@ -4,6 +4,7 @@ from logmanager import *
 from settings import version
 from threading import Timer
 from ADCPi import ADCPi
+import os
 
 
 
@@ -204,6 +205,11 @@ def parsecontrol(item, command):
         elif item == 'ymoveto':
             timerthread = Timer(1, lambda: steppery.moveto(command))
             timerthread.start()
+        elif item == 'restart':
+            if command == 'pi':
+                print('Restart command recieved: system will restart in 15 seconds')
+                timerthread = Timer(15, reboot)
+                timerthread.start()
         # print('X = %s, Y = %s' % (stepperx.listlocation(), steppery.listlocation()))
     except ValueError:
         print('incorrect json message')
@@ -219,6 +225,9 @@ def runselftest():
     timerthread = Timer(10, testsequence)
     timerthread.start()
 
+def reboot():
+    print('System is restarting now')
+    os.system('sudo reboot')
 
 def testsequence():
     print('Self test started ************************************')
