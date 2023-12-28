@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request
-import os
+import subprocess
 from steppercontrol import *
 from settings import version, settings
 
@@ -9,7 +9,7 @@ app = Flask(__name__)\
 
 @app.route('/')
 def index():
-    with open(settings['logging']['cputemp'], 'r') as f:
+    with open(settings['cputemp'], 'r') as f:
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
@@ -36,11 +36,11 @@ def selftest():
 
 @app.route('/pylog')
 def showplogs():
-    with open(settings['logging']['cputemp'], 'r') as f:
+    with open(settings['cputemp'], 'r') as f:
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
-    with open(settings['logging']['logfilepath'], 'r') as f:
+    with open(settings['logfilepath'], 'r') as f:
         log = f.readlines()
     f.close()
     log.reverse()
@@ -50,52 +50,45 @@ def showplogs():
 
 @app.route('/guaccesslog')
 def showgalogs():
-    with open(settings['logging']['cputemp'], 'r') as f:
+    with open(settings['cputemp'], 'r') as f:
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
-    with open(settings['logging']['gunicornpath'] + 'gunicorn-access.log', 'r') as f:
+    with open(settings['gunicornpath'] + 'gunicorn-access.log', 'r') as f:
         log = f.readlines()
     f.close()
     log.reverse()
     logs = tuple(log)
-    return render_template('logs.html', rows=logs, log='gunicorn access log', version=version,
+    return render_template('logs.html', rows=logs, log='Gunicorn Access Log', version=version,
                            cputemperature=cputemperature)
 
 
 @app.route('/guerrorlog')
 def showgelogs():
-    with open(settings['logging']['cputemp'], 'r') as f:
+    with open(settings['cputemp'], 'r') as f:
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
-    with open(settings['logging']['gunicornpath'] + 'gunicorn-error.log', 'r') as f:
+    with open(settings['gunicornpath'] + 'gunicorn-error.log', 'r') as f:
         log = f.readlines()
     f.close()
     log.reverse()
     logs = tuple(log)
-    return render_template('logs.html', rows=logs, log='gunicorn error log', version=version,
+    return render_template('logs.html', rows=logs, log='Gunicorn Error Log', version=version,
                            cputemperature=cputemperature)
 
 
-@app.route('/syslog')
+@app.route('/syslog')  # display the raspberry pi system log
 def showslogs():
-    with open(settings['logging']['cputemp'], 'r') as f:
+    with open(settings['cputemp'], 'r') as f:
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
-    with open(settings['logging']['syslogfilepath'], 'r') as f:
-        log = f.readlines()
-    f.close()
-    log.reverse()
-    logs = tuple(log)
-    return render_template('logs.html', rows=logs, log='system log', version=version, cputemperature=cputemperature)
-
-
-@app.route('/uscHALT')
-def shutdown_the_server():
-    os.system('sudo halt')
-    return 'The server is now shutting down, please give it a minute before pulling the power. Cheers G'
+    log = subprocess.Popen('journalctl -n 200', shell=True,
+                           stdout=subprocess.PIPE).stdout.read().decode(encoding='utf-8')
+    logs = log.split('\n')
+    logs.reverse()
+    return render_template('logs.html', rows=logs, log='System Log', cputemperature=cputemperature, version=version)
 
 
 if __name__ == '__main__':

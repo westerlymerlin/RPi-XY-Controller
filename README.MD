@@ -11,7 +11,6 @@
 
 `README.pdf`		software description and details how to setup on a Raspberry Pi
 
-`Stepper Control Circuit.fzz`     contains the schematics and PCB layout for use in the Fritzing application https://fritzing.org/
 
 ### JSON Commands
 
