@@ -4,7 +4,7 @@
 echo "
 **** pulling the master branch from github ****
 "
-cd ~/github/UCL-RPi-ValveController/
+cd ~/github/UCL-RPi-XY-Controller/
 git pull origin master
 cd ~
 
