@@ -2,6 +2,7 @@
 
 ### X-Y Controller is a python app that can operate 24v stepper motors and is controlled via an HTTP API
 
+Functional description and setup instructions are available in the file: [README.pdf](./README.pdf)
 
 `app.py`			    Flask application that manages the API 
 
