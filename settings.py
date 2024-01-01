@@ -1,9 +1,14 @@
+"""
+Settings module, reads the settings from a settings.json file. If it does not exist or a new setting
+has appeared it will creat from the defaults in the initialise function.
+"""
 import json
 from datetime import datetime
 
-version = '2.0.2'
+VERSION = '2.0.3'
 
-def initialise():  # These are the default values written to the settings.json file the first time the app is run
+def initialise():
+    """Setup the settings structure with default values"""
     isettings = {'LastSave': '01/01/2000 00:00:01',
                  'logfilepath': './logs/xycontrol.log',
                  'logappname': 'XY-Control-Py',
@@ -12,13 +17,15 @@ def initialise():  # These are the default values written to the settings.json f
     return isettings
 
 def writesettings():
+    """Write settings to json file"""
     settings['LastSave'] = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    with open('settings.json', 'w') as outfile:
+    with open('settings.json', 'w', encoding='utf-8') as outfile:
         json.dump(settings, outfile, indent=4, sort_keys=True)
 
 def readsettings():
+    """Read the json file"""
     try:
-        with open('settings.json') as json_file:
+        with open('settings.json', 'r', encoding='utf-8') as json_file:
             jsettings = json.load(json_file)
             return jsettings
     except FileNotFoundError:
@@ -26,6 +33,7 @@ def readsettings():
         return {}
 
 def loadsettings():
+    """Replace the default settings with thsoe from the json files"""
     global settings
     settingschanged = 0
     fsettings = readsettings()

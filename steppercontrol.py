@@ -1,15 +1,18 @@
-from RPi import GPIO
+"""
+Main controller classes
+"""
+
 from time import sleep
-from logmanager import logger
-from settings import version
-from threading import Timer
-from ADCPi import ADCPi
 import os
-
-
+from threading import Timer
+from RPi import GPIO
+from ADCPi import ADCPi
+from logmanager import logger
+from settings import VERSION
 
 
 class PositionClass:
+    """reads positions from ADCs"""
     def __init__(self):
         self.x = 0
         self.y = 0
@@ -17,21 +20,23 @@ class PositionClass:
         timerthread.start()
 
     def getpositions(self):
+        """Regular timer to read positions form ADCs"""
         self.x = adc.read_voltage(1) - 2.5
         self.y = adc.read_voltage(5) - 2.5
         # print('Read position')
         timerthread = Timer(0.25, self.getpositions)
         timerthread.start()
 
-    def location(self, loc):
-        if loc == 'x':
+    def location(self, table_axis):
+        """Returns the location along specified axis"""
+        if table_axis == 'x':
             return self.x
-        elif loc == 'y':
+        if table_axis == 'y':
             return self.y
-        else:
-            return -99.99
+        return -99.99
 
 class StepperClass:
+    """Class to control a stepper motor"""
     def __init__(self):
         self.axis = 'n'
         self.seq = [[1, 0, 1, 0],
@@ -55,6 +60,7 @@ class StepperClass:
         self.moving = False
 
     def setchannels(self, a, aa, b, bb):
+        """Setus up the GPIO channels for the stepper windings"""
         self.channela = a
         self.channelaa = aa
         self.channelb = b
@@ -62,12 +68,15 @@ class StepperClass:
         GPIO.setup(self.listchannels(), GPIO.OUT)
 
     def listchannels(self):
+        """lists teh chanells used"""
         return [self.channela, self.channelaa, self.channelb, self.channelbb]
 
     def current(self):
+        """Return current sequence, used for debugging"""
         return self.seq[self.sequenceindex]
 
     def movenext(self, fine=False):
+        """Move +1 step"""
         stepincrement = 1
         if positions.location(self.axis) < self.upperlimit:
             self.sequenceindex += stepincrement
@@ -80,6 +89,7 @@ class StepperClass:
             # print('Move %s' % stepincrement)
 
     def moveprevious(self, fine=False):
+        """Move -1 step"""
         stepincrement = -1
         if positions.location(self.axis) > self.lowerlimit:
             self.sequenceindex += stepincrement
@@ -92,13 +102,15 @@ class StepperClass:
             # print('Move %s' % stepincrement)
 
     def stop(self):
+        """Stop moving"""
         self.moving = False
         self.sequence = self.sequence + 1
-        logger.info('%s stopped, X = %s, Y = %s' % (self.axis, round(positions.location('x'), 4),
-                                              round(positions.location('y'), 4)))
+        logger.info('%s stopped, X = %s, Y = %s', self.axis, round(positions.location('x'), 4),
+                    round(positions.location('y'), 4))
         self.output([0, 0, 0, 0])
 
     def move(self, steps):
+        """Move **steps** at full speed"""
         self.sequence = self.sequence + 1
         self.moving = True
         if steps == 0:
@@ -112,8 +124,8 @@ class StepperClass:
                 self.moveprevious()
             sleep(self.pulsewidth * 2)
         self.stop()
-        
     def moveslow(self, steps):
+        """Moce **steps** slowly"""
         self.sequence = self.sequence + 1
         self.moving = True
         while steps != 0 and self.moving:
@@ -128,6 +140,7 @@ class StepperClass:
             sleep(1)
 
     def moveto(self, target):
+        """Move the motor to a specific target value on the ADC"""
         self.moving = True
         self.sequence = self.sequence + 1
         seq = self.sequence
@@ -138,18 +151,18 @@ class StepperClass:
             while positions.location(self.axis) != target and seq == self.sequence:
                 stepcounter += 1
                 if stepcounter > 8000:
-                    logger.info("step counter overrun %s" % stepcounter)
+                    logger.info('step counter overrun %s', stepcounter)
                     self.stop()
                     return
                 if delta > 0:
                     if abs(target - positions.location(self.axis)) < 0.1:
                         self.movenext(True)
-                        logger.info('recheck stepper %s position %s - target %s' % (self.axis, round(
-                            positions.location(self.axis), 4), target))
+                        logger.info('recheck stepper %s position %s - target %s', self.axis,
+                                    round(positions.location(self.axis), 4), target)
                         if positions.location(self.axis) > target:
                             self.moveprevious(True)
-                            logger.info("%s at %s and just passed %s so stepped back 1. Steps = %s"
-                                  % (self.axis, positions.location(self.axis), target, stepcounter))
+                            logger.info('%s at %s and just passed %s so stepped back 1. Steps = %s',
+                                  self.axis, positions.location(self.axis), target, stepcounter)
                             self.stop()
                             return
                     else:
@@ -157,12 +170,12 @@ class StepperClass:
                 else:
                     if abs(target - positions.location(self.axis)) < 0.1:
                         self.moveprevious(True)
-                        logger.info('recheck stepper %s position %s - target %s' % (self.axis, round(
-                            positions.location(self.axis), 4), target))
+                        logger.info('recheck stepper %s position %s - target %s', self.axis,
+                                    round(positions.location(self.axis), 4), target)
                         if positions.location(self.axis) < target:
                             self.movenext(True)
-                            logger.info("%s at %s and just passed %s so stepped forward 1. Steps = %s"
-                                  % (self.axis, positions.location(self.axis), target, stepcounter))
+                            logger.info('%s at %s and just passed %s so stepped forward 1. Steps = %s',
+                                  self.axis, positions.location(self.axis), target, stepcounter)
                             self.stop()
                             return
                     else:
@@ -176,23 +189,27 @@ class StepperClass:
         self.moving = False
 
     def output(self, channels):
+        """Output the value to teh coils on the stepper"""
         GPIO.output(self.channela, channels[0])
         GPIO.output(self.channelaa, channels[1])
         GPIO.output(self.channelb, channels[2])
         GPIO.output(self.channelbb, channels[3])
 
 def httpstatus():
+    """Return the psotion status to the web page"""
     statuslist = ({'xpos': round(positions.x, 4), 'ypos': round(positions.y, 4)})
     return statuslist
 
 def apistatus():
+    """Return the ststus as a json message for the api"""
     statuslist = ({'xpos': positions.x, 'xmoving': stepperx.moving, 'ypos': positions.y, 'ymoving': steppery.moving })
     return statuslist
 
 def parsecontrol(item, command):
+    """Parser that recieves messages from the API or web page posts and directs messages to the correct function"""
     try:
         if item != 'getxystatus':
-            logger.info('%s : %s ' % (item, command))
+            logger.info('%s : %s ', item, command)
         if item == 'xmove':
             timerthread = Timer(1, lambda: stepperx.move(command))
             timerthread.start()
@@ -218,6 +235,7 @@ def parsecontrol(item, command):
 
 
 def runselftest():
+    """Run a selftest defined in the **testsequence** method"""
     logger.info('Stopping both motors prior to testing')
     stepperx.stop()
     steppery.stop()
@@ -226,10 +244,12 @@ def runselftest():
     timerthread.start()
 
 def reboot():
+    """API call to reboot the Raspberry Pi"""
     logger.warning('System is restarting now')
     os.system('sudo reboot')
 
 def testsequence():
+    """test sequence for the x-y table"""
     logger.info('Self test started ************************************')
     logger.info('Starting channel x tests')
     logger.info('Setting all x channels to 1 for 5 seconds')
@@ -267,57 +287,62 @@ def testsequence():
 
 
 def reference():
+    """Return the reference voltage used by the ADC"""
     ref = abs(adc.read_voltage(8) - 4.935)
     return ref
 
 
 def jsxplus():
+    """Joystick Forward on X axis"""
     if GPIO.input(7):
         GPIO.output(12, GPIO.HIGH)
         logger.info('joystick X+ High (Released)')
     else:
         GPIO.output(12, GPIO.LOW)
         logger.info('joystick X+ Low (Pressed)')
-        while not (GPIO.input(7)):
+        while not GPIO.input(7):
             stepperx.movenext()
             sleep(.05)
         stepperx.stop()
 
 
 def jsxminus():
+    """Joystick Backward on X axis"""
     if GPIO.input(16):
         GPIO.output(12, GPIO.HIGH)
         logger.info('joystick X- High (Released)')
     else:
         GPIO.output(12, GPIO.LOW)
         logger.info('joystick X- Low (Pressed)')
-        while not (GPIO.input(16)):
+        while not GPIO.input(16):
             stepperx.moveprevious()
             sleep(.05)
         stepperx.stop()
 
 
 def jsyplus():
+    """Joystick Forward on Y axis"""
     if GPIO.input(20):
         GPIO.output(12, GPIO.HIGH)
         logger.info('joystick Y+ High (Released)')
     else:
         GPIO.output(12, GPIO.LOW)
         logger.info('joystick Y+ Low (Pressed)')
-        while not (GPIO.input(7)):
+        while not GPIO.input(7):
             steppery.movenext()
             sleep(.05)
         steppery.stop()
 
 
 def jsyminus():
+    """Joystick Backward on X axis"""
     if GPIO.input(21):
         GPIO.output(12, GPIO.HIGH)
         logger.info('joystick Y- High (Released)')
     else:
         GPIO.output(12, GPIO.LOW)
         logger.info('joystick Y- Low (Pressed)')
-        while not (GPIO.input(16)):
+        while not GPIO.input(16):
             steppery.moveprevious()
             sleep(.05)
         steppery.stop()
@@ -344,6 +369,6 @@ GPIO.add_event_detect(11, GPIO.BOTH, callback=jsxplus, bouncetime=50)
 GPIO.add_event_detect(16, GPIO.BOTH, callback=jsxminus, bouncetime=50)
 GPIO.add_event_detect(20, GPIO.BOTH, callback=jsyplus, bouncetime=50)
 GPIO.add_event_detect(21, GPIO.BOTH, callback=jsyminus, bouncetime=50)
-logger.info('Running version %s' % version)
+logger.info('Running version %s', VERSION)
 logger.info("xy controller ready")
 GPIO.output(12, 1)  # Set ready LED

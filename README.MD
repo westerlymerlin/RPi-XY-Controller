@@ -10,8 +10,6 @@ Functional description and setup instructions are available in the file: [README
 
 `stepperontrol.py`		Controls X-Y stage via bipolar stepper motors and an ADC controller to read positional information. 
 
-`README.pdf`		software description and details how to setup on a Raspberry Pi
-
 
 ### JSON Commands
 
