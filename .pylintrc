@@ -421,14 +421,13 @@ confidence=HIGH,
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=bare-except,
-        W0602,
-        R1732,
-        R0911,
-        R1705,
-		R0912,
-        C0201,
-        C0209
+disable=C0209,  # consider-using-f-string
+        C0201,  # consider-iterating-dictionary
+        E1101,  # no-member
+        R1732,  # consider-using-with
+        W0602,  # global-variable-not-assigned
+        W0603,  # global-statement
+        W0702,  # bare-except
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
