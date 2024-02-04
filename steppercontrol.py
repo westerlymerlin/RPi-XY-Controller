@@ -8,7 +8,6 @@ from threading import Timer
 from RPi import GPIO
 from ADCPi import ADCPi
 from logmanager import logger
-from settings import VERSION
 
 
 class PositionClass:
@@ -369,6 +368,5 @@ GPIO.add_event_detect(11, GPIO.BOTH, callback=jsxplus, bouncetime=50)
 GPIO.add_event_detect(16, GPIO.BOTH, callback=jsxminus, bouncetime=50)
 GPIO.add_event_detect(20, GPIO.BOTH, callback=jsyplus, bouncetime=50)
 GPIO.add_event_detect(21, GPIO.BOTH, callback=jsyminus, bouncetime=50)
-logger.info('Running version %s', VERSION)
 logger.info("xy controller ready")
 GPIO.output(12, 1)  # Set ready LED
