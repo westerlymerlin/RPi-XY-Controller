@@ -43,7 +43,7 @@ def api():
         logger.debug('API headers: %s', request.headers)
         logger.debug('API request: %s', request.json)
         if 'Api-Key' in request.headers.keys():  # check api key exists
-            if request.headers['api-key'] == settings['api-key']:  # check for correct API key
+            if request.headers['Api-Key'] == settings['api-key']:  # check for correct API key
                 item = request.json['item']
                 command = request.json['command']
                 parsecontrol(item, command)
@@ -53,7 +53,7 @@ def api():
         logger.warning('API: access attempt without a token from  %s', request.headers['X-Forwarded-For'])
         return 'access token(s) incorrect', 401
     except KeyError:
-        return "badly formed json message", 201
+        return "badly formed json message", 401
 
 
 @app.route('/selftest')
