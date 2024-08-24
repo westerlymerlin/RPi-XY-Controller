@@ -2,7 +2,6 @@
 Description=daemon Web Serice
 After=network.target
 
-
 [Service]
 User=pi
 Group=www-data

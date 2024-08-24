@@ -35,7 +35,14 @@
                     <td class="tabledataleft">Y Stepper</td>
                     <td class="tabledataleft">{{locations['ypos']}}</td>
             </tr>
+            {% for thread in threads %}
+                <tr>
+                    <td class="tabledataleft">Thread</td>
+                    <td class="tabledataleft">{{thread[0]}}</td>
+                    <td class="tabledataleft">{{thread[1]}}</td>
 
+                </tr>
+            {% endfor %}
       </table>
     <p>&nbsp</p>
 	</section>

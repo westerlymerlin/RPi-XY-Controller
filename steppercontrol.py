@@ -16,15 +16,16 @@ class PositionClass:
         self.x = 0
         self.y = 0
         timerthread = Timer(0.5, self.getpositions)
+        timerthread.name = 'Postition Thread'
         timerthread.start()
 
     def getpositions(self):
         """Regular timer to read positions form ADCs"""
-        self.x = adc.read_voltage(1) - 2.5
-        self.y = adc.read_voltage(5) - 2.5
-        # print('Read position')
-        timerthread = Timer(0.25, self.getpositions)
-        timerthread.start()
+        while adc is not None:
+            self.x = adc.read_voltage(1) - 2.5
+            self.y = adc.read_voltage(5) - 2.5
+            # print('Read position')
+            sleep(0.25)
 
     def location(self, table_axis):
         """Returns the location along specified axis"""
@@ -211,15 +212,19 @@ def parsecontrol(item, command):
             logger.info('%s : %s ', item, command)
         if item == 'xmove':
             timerthread = Timer(1, lambda: stepperx.move(command))
+            timerthread.name = 'xmove thread'
             timerthread.start()
         elif item == 'ymove':
             timerthread = Timer(1, lambda: steppery.move(command))
+            timerthread.name = 'ymove thread'
             timerthread.start()
         elif item == 'xmoveto':
             timerthread = Timer(1, lambda: stepperx.moveto(command))
+            timerthread.name = 'ymove to %s thread' % command
             timerthread.start()
         elif item == 'ymoveto':
             timerthread = Timer(1, lambda: steppery.moveto(command))
+            timerthread.name = 'ymove to %s thread' % command
             timerthread.start()
         elif item == 'restart':
             if command == 'pi':
@@ -240,6 +245,7 @@ def runselftest():
     steppery.stop()
     logger.info('Starting test sequence in 10 seconds')
     timerthread = Timer(10, testsequence)
+    timerthread.name = 'selftest thread'
     timerthread.start()
 
 def reboot():
@@ -353,8 +359,12 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(12, GPIO.OUT)
 GPIO.setup([11, 16, 20, 21], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.output(12, 0)
-adc = ADCPi(0x68, 0x69, 12)
-adc.set_conversion_mode(1)
+try:
+    adc = ADCPi(0x68, 0x69, 12)
+    adc.set_conversion_mode(1)
+except OSError:
+    adc = None
+    logger.exception('Error: No ADCPi Board Found')
 positions = PositionClass()
 stepperx = StepperClass()
 stepperx.axis = 'x'

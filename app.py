@@ -2,9 +2,10 @@
 This is the main flask application - called by Gunicorn
 """
 import subprocess
+from threading import enumerate as enumerate_threads
 from flask import Flask, render_template, jsonify, request
 from steppercontrol import httpstatus, parsecontrol, apistatus, runselftest
-from settings import VERSION, settings
+from app_control import VERSION, settings
 from logmanager import logger
 
 app = Flask(__name__)
@@ -26,6 +27,14 @@ def read_reversed_lines(path):
     return list(reversed(lines))
 
 
+def threadlister():
+    """Get a list of all threads running"""
+    appthreads = []
+    for appthread in enumerate_threads():
+        appthreads.append([appthread.name, appthread.native_id])
+    return appthreads
+
+
 @app.route('/')
 def index():
     """Main web page handler, shows status page via the index.html template"""
@@ -33,7 +42,8 @@ def index():
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
-    return render_template('index.html', locations=httpstatus(), version=VERSION, cputemperature=cputemperature)
+    return render_template('index.html', locations=httpstatus(), version=VERSION,
+                           cputemperature=cputemperature, threads=threadlister())
 
 
 @app.route('/api', methods=['POST'])
