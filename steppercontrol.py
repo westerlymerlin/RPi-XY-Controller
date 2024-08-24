@@ -291,68 +291,6 @@ def testsequence():
     logger.info('Self test ended ************************************')
 
 
-def reference():
-    """Return the reference voltage used by the ADC"""
-    ref = abs(adc.read_voltage(8) - 4.935)
-    return ref
-
-
-def jsxplus():
-    """Joystick Forward on X axis"""
-    if GPIO.input(7):
-        GPIO.output(12, GPIO.HIGH)
-        logger.info('joystick X+ High (Released)')
-    else:
-        GPIO.output(12, GPIO.LOW)
-        logger.info('joystick X+ Low (Pressed)')
-        while not GPIO.input(7):
-            stepperx.movenext()
-            sleep(.05)
-        stepperx.stop()
-
-
-def jsxminus():
-    """Joystick Backward on X axis"""
-    if GPIO.input(16):
-        GPIO.output(12, GPIO.HIGH)
-        logger.info('joystick X- High (Released)')
-    else:
-        GPIO.output(12, GPIO.LOW)
-        logger.info('joystick X- Low (Pressed)')
-        while not GPIO.input(16):
-            stepperx.moveprevious()
-            sleep(.05)
-        stepperx.stop()
-
-
-def jsyplus():
-    """Joystick Forward on Y axis"""
-    if GPIO.input(20):
-        GPIO.output(12, GPIO.HIGH)
-        logger.info('joystick Y+ High (Released)')
-    else:
-        GPIO.output(12, GPIO.LOW)
-        logger.info('joystick Y+ Low (Pressed)')
-        while not GPIO.input(7):
-            steppery.movenext()
-            sleep(.05)
-        steppery.stop()
-
-
-def jsyminus():
-    """Joystick Backward on X axis"""
-    if GPIO.input(21):
-        GPIO.output(12, GPIO.HIGH)
-        logger.info('joystick Y- High (Released)')
-    else:
-        GPIO.output(12, GPIO.LOW)
-        logger.info('joystick Y- Low (Pressed)')
-        while not GPIO.input(16):
-            steppery.moveprevious()
-            sleep(.05)
-        steppery.stop()
-
-
 logger.info("xy controller started")
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -374,9 +312,5 @@ steppery = StepperClass()
 steppery.axis = 'y'
 steppery.setchannels(17, 22, 27, 13)
 steppery.stop()
-GPIO.add_event_detect(11, GPIO.BOTH, callback=jsxplus, bouncetime=50)
-GPIO.add_event_detect(16, GPIO.BOTH, callback=jsxminus, bouncetime=50)
-GPIO.add_event_detect(20, GPIO.BOTH, callback=jsyplus, bouncetime=50)
-GPIO.add_event_detect(21, GPIO.BOTH, callback=jsyminus, bouncetime=50)
 logger.info("xy controller ready")
 GPIO.output(12, 1)  # Set ready LED
