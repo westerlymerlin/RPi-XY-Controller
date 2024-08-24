@@ -362,7 +362,7 @@ GPIO.output(12, 0)
 try:
     adc = ADCPi(0x68, 0x69, 12)
     adc.set_conversion_mode(1)
-except OSError:
+except:
     adc = None
     logger.exception('Error: No ADCPi Board Found')
 positions = PositionClass()
