@@ -102,7 +102,7 @@ def showslogs():
         log = f.readline()
     f.close()
     cputemperature = round(float(log)/1000, 1)
-    log = subprocess.Popen('journalctl -n 200', shell=True,
+    log = subprocess.Popen('/bin/journalctl -n 200', shell=True,
                            stdout=subprocess.PIPE).stdout.read().decode(encoding='utf-8')
     logs = log.split('\n')
     logs.reverse()
