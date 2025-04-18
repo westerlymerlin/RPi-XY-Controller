@@ -22,16 +22,6 @@ write to the log.
 [steppercontrol](./steppercontrol.md)  
 Main controller classes
 
-[tmpvoltage](./tmpvoltage.md)  
-================================================
-ABElectronics ADC Pi 8-Channel ADC demo
-Requires python smbus to be installed
-run with: python demo_readvoltage.py
-================================================
-Initialise the ADC device using the default addresses and sample rate,
-change this value if you have changed the address selection jumpers
-Sample rate can be 12,14, 16 or 18
-
 
 ---
 

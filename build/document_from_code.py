@@ -11,7 +11,7 @@ from app_control import settings, VERSION
 
 DOCSPATH = '../docs'
 SEARCHPATHS = ['../ui', '../']
-SKIPNAMES = ['ui_layout_', 'main_rc', 'RPi', 'test', 'venv', 'ADCPi']
+SKIPNAMES = ['ui_layout_', 'main_rc', 'RPi', 'test', 'venv', 'ADCPi', 'tmpvolt']
 
 def checkmodule(name):
     """Check if a module is valid for documentation"""
