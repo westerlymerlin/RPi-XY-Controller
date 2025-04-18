@@ -11,6 +11,7 @@ VERSION = '2.1.3'
 def initialise():
     """Setup the settings structure with default values"""
     isettings = {'LastSave': '01/01/2000 00:00:01',
+                 'app-name': 'Helium Line XY Controler',
                  'api-key': 'change-me',
                  'logfilepath': './logs/xycontrol.log',
                  'logappname': 'XY-Control-Py',

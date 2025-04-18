@@ -4,6 +4,11 @@
 
 Functional description and setup instructions are available in the file: [README.pdf](./README.pdf)
 
+Python module documentation can be found in the folder: [docs](./docs/readme.md)
+
+Change log can be found in the file [changelog.txt](./changelog.txt)
+
+
 `app.py`			    Flask application that manages the API 
 
 ----------------------------------------------------
