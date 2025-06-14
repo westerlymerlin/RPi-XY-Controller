@@ -1,6 +1,30 @@
 """
-This is the main flask application - called by Gunicorn
+X-Y Controller Web Application
+
+A Flask-based web application that provides both a user interface and API endpoints
+for controlling and monitoring an X-Y positioning system. The application offers:
+
+- Status monitoring via web interface
+- API endpoints for programmatic control (API key required)
+- Self-test functionality for system validation
+- Access to various log files (application, Gunicorn, system)
+- System information including CPU temperature and running threads
+
+The application is designed to be run by Gunicorn in a production environment,
+but can also be run directly for development purposes.
+
+Routes:
+  - / : Main status page
+  - /api : API endpoint for programmatic control (POST, requires API key)
+  - /selftest : Runs a system self-test
+  - /pylog : Displays application logs
+  - /guaccesslog : Displays Gunicorn access logs
+  - /guerrorlog : Displays Gunicorn error logs
+  - /syslog : Displays system logs
+
+Configuration is managed through settings imported from app_control.
 """
+
 import subprocess
 from threading import enumerate as enumerate_threads
 from flask import Flask, render_template, jsonify, request
@@ -13,7 +37,23 @@ logger.info('Starting X-Y Controller web app version %s', VERSION)
 logger.info('Api-Key = %s', settings['api-key'])
 
 def read_cpu_temperature():
-    """Get CPU temperature"""
+    """
+    Reads the CPU temperature from the file specified in the settings and converts
+    it to Celsius.
+
+    Reads the raw CPU temperature value from the file path defined in the settings
+    dictionary under the 'cputemp' key. The value is retrieved as a string,
+    converted to a floating-point number, divided by 1000 to get the temperature
+    in Celsius, rounded to one decimal place, and returned.
+
+    Returns:
+        float: The CPU temperature in Celsius.
+
+    Raises:
+        KeyError: If the 'cputemp' key is missing from the settings dictionary.
+        FileNotFoundError: If the specified file does not exist.
+        IOError: If there is an error reading the file.
+    """
     with open(settings['cputemp'], 'r', encoding='utf-8') as f:
         cpu_temp_log = f.readline()
     cpu_temp = round(float(cpu_temp_log) / 1000, 1)
@@ -21,14 +61,37 @@ def read_cpu_temperature():
 
 
 def read_reversed_lines(path):
-    """Reads a file's lines and returns them in reverse order"""
+    """
+    Reads lines from a file, reverses their order, and returns the reversed list of lines.
+
+    Summary:
+    This function reads all the lines from a specified file, reverses the order of those lines,
+    and returns the reversed list. The file is expected to be encoded in UTF-8.
+
+    Args:
+        path (str): The path to the file from which lines will be read.
+
+    Returns:
+        list[str]: A list containing the lines from the file in reversed order.
+    """
     with open(path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     return list(reversed(lines))
 
 
 def threadlister():
-    """Get a list of all threads running"""
+    """
+    Get the list of active threads with their names and native IDs.
+
+    This function gathers all currently active threads, retrieves their names
+    and native IDs, and organizes them into a list. Each thread is represented
+    as a sublist containing its name and native ID. This is useful for debugging
+    or monitoring thread activity in the application.
+
+    Returns:
+        List[List[str, int]]: A list of active threads where each thread is
+        represented as a list containing its name (str) and native ID (int).
+    """
     appthreads = []
     for appthread in enumerate_threads():
         appthreads.append([appthread.name, appthread.native_id])
@@ -37,7 +100,14 @@ def threadlister():
 
 @app.route('/')
 def index():
-    """Main web page handler, shows status page via the index.html template"""
+    """
+    Handles the root route of the application, retrieves CPU temperature, and renders
+    the main index page with relevant data such as locations, application version,
+    CPU temperature, and active threads.
+
+    Returns:
+        str: Rendered HTML template for the index page.
+    """
     with open(settings['cputemp'], 'r', encoding='utf-8') as f:
         log = f.readline()
     f.close()
@@ -48,7 +118,22 @@ def index():
 
 @app.route('/api', methods=['POST'])
 def api():
-    """API Endpoint for programatic access - needs request data to be posted in a json file"""
+    """
+    Handles API requests for executing commands on specific items by verifying the provided API key.
+
+    The function is intended to handle POST requests to the '/api' endpoint. It verifies the validity of the
+    API key provided in the request headers before processing the request. If the API key is valid, it extracts
+    the required parameters from the JSON payload (item and command), processes the command, and returns the API
+    status. If the key is missing or invalid, it logs the attempt and returns an appropriate HTTP response.
+
+    The function also handles malformed JSON messages gracefully by returning an error response.
+
+    Returns:
+        JSONResponse: A JSON-formatted response containing the API status with a status code of 201 if the request
+        is processed successfully.
+        String: An error message with an appropriate HTTP status code if the API key is missing, invalid, or the
+        request JSON is malformed.
+    """
     try:
         logger.debug('API headers: %s', request.headers)
         logger.debug('API request: %s', request.json)
@@ -68,7 +153,18 @@ def api():
 
 @app.route('/selftest')
 def selftest():
-    """self-test routine that moves the stepper in each direction"""
+    """
+    Handles the self-test endpoint for a web application. This function triggers
+    a self-test operation to assess system functionality and provides a response
+    indicating that the test process has started. Users are instructed to review
+    logs and the front panel for results.
+
+    Returns
+    -------
+    str
+        A message indicating that the self-test operation has started, along with
+        a link to access system logs.
+    """
     runselftest()
     return 'Self-Test started, please review logs and front panel to see results' \
            ' <A href="/pylog">Click here for logs</A>'
@@ -76,28 +172,79 @@ def selftest():
 
 @app.route('/pylog')
 def showplogs():
-    """Displays the application log file via the logs.html template"""
+    """
+    Handles the retrieval and rendering of application logs in reverse order.
+
+    This function is mapped to the '/pylog' endpoint and fetches the log entries
+    for a Data Node from the specified log file. The logs are reversed so that
+    recent entries are displayed first. It then renders an HTML template with
+    the logs, title, and version information, providing a user interface to
+    analyze the log data.
+
+    Returns:
+        Response: Renders an HTML template populated with log data, log title,
+                  and version details.
+    """
     log = read_reversed_lines(settings['logfilepath'])
     return render_template('logs.html', rows=log, log='Data Node log', version=VERSION)
 
 
 @app.route('/guaccesslog')   # display the gunicorn access log
 def showgalogs():
-    """Displays the Gunicorn access log file via the logs.html template"""
+    """
+    Displays the Gunicorn access log by reading and reversing the lines of the
+    log file. The log is formatted into a web page showing the most recent
+    entries first.
+
+    Returns
+    -------
+    str
+        Rendered HTML template for displaying the Gunicorn access log.
+
+    Raises
+    ------
+    KeyError
+        If 'gunicornpath' is not defined in the settings dictionary.
+    """
     log = read_reversed_lines(settings['gunicornpath'] + 'gunicorn-access.log')
     return render_template('logs.html', rows=log, log='gunicorn access log', version=VERSION)
 
 
 @app.route('/guerrorlog')  # display the gunicorn error log
 def showgelogs():
-    """Displays the Gunicorn error log file via the logs.html template"""
+    """
+    Displays the Gunicorn error log.
+
+    This function handles the web endpoint for retrieving and displaying the
+    Gunicorn error log file. It reads the log file in reverse order, formats
+    it, and renders it in an HTML page for easy viewing.
+
+    Returns:
+        Response: A rendered HTML page containing the Gunicorn error log.
+    """
     log = read_reversed_lines(settings['gunicornpath'] + 'gunicorn-error.log')
     return render_template('logs.html', rows=log, log='gunicorn error log', version=VERSION)
 
 
 @app.route('/syslog')  # display the raspberry pi system log
 def showslogs():
-    """Displays the last 200 lines of the system log via the logs.html template"""
+    """
+    Display the Raspberry Pi system logs along with CPU temperature.
+
+    Opens and reads the system log file and CPU temperature from the specified
+    file path within the `settings` dictionary. Retrieves the most recent 200
+    log entries using the `journalctl` command. The log entries are reversed to
+    show the latest log entries first. The CPU temperature data is converted
+    and rounded to a single decimal point before being rendered in the HTML
+    template.
+
+    Raised exceptions during file access or subprocess execution are not
+    explicitly handled here.
+
+    Returns:
+        flask.Response: Rendered HTML template containing system log entries,
+        CPU temperature, and the software version.
+    """
     with open(settings['cputemp'], 'r', encoding='utf-8') as f:
         log = f.readline()
     f.close()
